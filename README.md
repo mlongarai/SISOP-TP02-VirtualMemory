@@ -26,8 +26,11 @@ print 'ARG addresses',          options.addresses -A// Endereço
 
 1- Como o tamanho das tabelas de páginas deve mudar conforme o espaço de endereçamento virtual cresce?
 
+O tamanho da tabela de paginas varia de acordo com o tamanho do espaco de enderecamento. Se aumentar o space size, aumenta o tamanho da tabela. Logo, se eu quiser diminuir a tabela, ou aumenta o page size ou diminui o space size.
+
 2- Conforme o tamanho das páginas cresce?
-Cresce em ordem crescente, litle endian.
+Conforme o space size aumenta, a page size diminui.
 
 3- Por que não se deve utilizar tabelas grandes demais?
+
 
