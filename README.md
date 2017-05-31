@@ -1,5 +1,6 @@
 SISOP-TP02-VirtualMemory
 
+Exercicio: https://github.com/mlongarai/SISOP-TP02-VirtualMemory/blob/master/TP2-2.pdf
 
 1)
 VA (bits)	Page size (kilobytes)	PTE size (bits)	VPN (bits)	Offset (bits)	TAM (bytes)
@@ -32,5 +33,5 @@ O tamanho da tabela de paginas varia de acordo com o tamanho do espaco de endere
 Conforme o space size aumenta, a page size diminui.
 
 3- Por que não se deve utilizar tabelas grandes demais?
-
+Porque voce estará colocando uma tabela muito grande dentro da memória. Exemplo: Conforme o tamanho do espaco de enderecamento, maior é numero de paginas alocadas na memoria. O calculo para saber a quantidade de paginas armazenadas é = VA/PageSize = Numero de paginas e para saber o quanto ocupa é o NumeroDePaginas * PTE Size.
 
