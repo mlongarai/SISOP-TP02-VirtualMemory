@@ -8,7 +8,7 @@ unsigned int TLB[16][2]; /* TLB with 16 entries. */
 unsigned int PageTable[256]; /* Page Table with 256 entries */
 
 int frame;
-int posCorrenteTLB = 0;
+int listTLB = 0;
 
 void page_table_init(unsigned int *pt){
     int i;
@@ -21,34 +21,34 @@ unsigned int next_address(){
     return rand()%65536;
 }
 
-int buscaTLB(int pagina)
+int searchTLB(int page)
 {
     int i;
-    int achei = -1;    
+    int match = -1;    
     for(i = 0; i < 16; i++) {
        
-        if(TLB[i][0] == pagina){
+        if(TLB[i][0] == page){
            frame = TLB[i][1];
-           achei = 1;
+           match = 1;
            break;
          }    
        }
-return achei;
+return match;
 }
 
-void preencheTLB(int frame, int pagina) 
+void preencheTLB(int frame, int page) 
 {
    
-        TLB[posCorrenteTLB][0] = pagina;
-        TLB[posCorrenteTLB][1] = frame;
-        posCorrenteTLB = (posCorrenteTLB + 1) % 16;
+        TLB[listTLB][0] = page;
+        TLB[listTLB][1] = frame;
+        listTLB = (listTLB + 1) % 16;
 }
 
 
-int buscaPageTable(int pagina)
+int searchPageTable(int page)
 {
-    frame = PageTable[pagina];
-    preencheTLB(frame,pagina);
+    frame = PageTable[page];
+    preencheTLB(frame,page);
 }
 
 int main(int argc, char **argv){
@@ -65,40 +65,34 @@ int main(int argc, char **argv){
     
     numberAddr = atoi(argv[1]);
 
-    srand(time()); /* Initialize the random numbers generator. */
+    //srand(time()); /* Initialize the random numbers generator. */
     memset(TLB, 0, sizeof(TLB)); /* Reset TLB */
     page_table_init(PageTable); /* Initial random page table. */
-    int pagina, offset, answerTLB, enderecoReal,answerPageTable, TLBFault;    
+    int page, offset, answerTLB, RealAddress,answerPageTable, TLBFault;    
     
     for(i=0;i<numberAddr;i++){ 
         
         address = next_address();
 
-        pagina = address >> 8;
+        page = address >> 8;
         
         offset = address & 0XFF;
 
-        answerTLB = buscaTLB(pagina); 
+        answerTLB = searchTLB(page); 
                 
         if(answerTLB == 0){ 
             
-            enderecoReal = frame << 8 || offset;
+            RealAddress = frame << 8 || offset;
         
-        } /* match tlb anwser */
-        else{ /* tlb no anwser */
+        } /* match TLB anwser */
+        else{ /* TLB no anwser */
         
         TLBFault++;
         
         }
-        
-        buscaPageTable(pagina);        
-
-        enderecoReal = enderecoReal = frame << 8 || offset;
-            
-            printf("Endereço Virtual: %x\n", address);
-            printf("\nEndereço Real: %x\n", enderecoReal);
-            printf("TLB Fault:%d\n", TLBFault);                
-        
+        searchPageTable(page);        
+        RealAddress = RealAddress = frame << 8 || offset;              
+        printf("Virtual Address [%d]\t - TLB %d\n",address ,TLBFault);
         }
 
     return 0;
