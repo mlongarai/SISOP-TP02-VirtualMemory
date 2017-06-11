@@ -52,7 +52,7 @@ int searchPageTable(int page)
 }
 
 int main(int argc, char **argv){
-    int i;
+    int i, RealAddress, answerPageTable, answerTLB;
     unsigned int address;
     int numberAddr = 0;
     
@@ -68,7 +68,7 @@ int main(int argc, char **argv){
     //srand(time()); /* Initialize the random numbers generator. */
     memset(TLB, 0, sizeof(TLB)); /* Reset TLB */
     page_table_init(PageTable); /* Initial random page table. */
-    int page, offset, answerTLB, RealAddress,answerPageTable, TLBFault;    
+    int page, offset, TLBFault;    
     
     for(i=0;i<numberAddr;i++){ 
         
@@ -92,7 +92,7 @@ int main(int argc, char **argv){
         }
         searchPageTable(page);        
         RealAddress = RealAddress = frame << 8 || offset;              
-        printf("Virtual Address [%d]\t - TLB %d\n",address ,TLBFault);
+        printf("Virtual Address [%d]\t - TLBFault %d\n",address ,TLBFault);
         }
 
     return 0;
