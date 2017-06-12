@@ -1,100 +1,130 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>
 #include <time.h>
 
-unsigned int TLB[16][2]; /* TLB with 16 entries. */
-unsigned int PageTable[256]; /* Page Table with 256 entries */
+/* TLB with 16 entries. */
+int TLB[16][2];
 
-int frame;
-int listTLB = 0;
+/* Page Table with 256 entries */
+unsigned int PageTable[256];
 
+/* Used for TLB entries */
+unsigned int page,
+			 tlbIndex,
+			 frame = 0;
+
+
+/**
+ * @brief Initialize the page table with random frame numbers.
+ *
+ * @param pt Page table pointer.
+ */
 void page_table_init(unsigned int *pt){
-    int i;
-    for(i=0; i<256; i++){
-        pt[i] = rand()%256;
-    }
+	int i;
+	for(i=0; i<256; i++){
+		pt[i] = rand()%256; //8 bits
+	}
 }
 
+/**
+ * @brief Initialize the TLB.
+ *
+ * @param t TLB pointer.
+ */
+void tlb_init(int t[16][2]){
+	int i;
+	for(i=0; i<16; i++){
+		t[i][0] = -1;
+        t[i][1] = -1;
+	}
+}
+
+
+/**
+ * @brief Generates a random virtual address.
+ *
+ * @return VA.
+ */
 unsigned int next_address(){
-    return rand()%65536;
+	return rand()%65536; //16 bits
+}
+/**
+ * @brief Feed TLB with frame and page.
+ *
+ * @param frame, page.
+ */
+void feedTlb(int frame, int page){
+
+	TLB[tlbIndex][0] = page;
+	TLB[tlbIndex][1] = frame;
+	tlbIndex = (tlbIndex + 1) % 16;
 }
 
-int searchTLB(int page)
+
+/**
+ * @brief Search the page on TLB
+ *
+ * @return Return hit case page is in TLB
+ */
+
+int TLBsearch(int page)
 {
-    int i;
-    int match = -1;    
-    for(i = 0; i < 16; i++) {
-       
+    int hit = 0;
+    for(int i = 0; i < 16; i++) {
+
         if(TLB[i][0] == page){
            frame = TLB[i][1];
-           match = 1;
+           hit = 1;
            break;
-         }    
+         }
        }
-return match;
-}
-
-void preencheTLB(int frame, int page) 
-{
-   
-        TLB[listTLB][0] = page;
-        TLB[listTLB][1] = frame;
-        listTLB = (listTLB + 1) % 16;
-}
-
-
-int searchPageTable(int page)
-{
-    frame = PageTable[page];
-    preencheTLB(frame,page);
+return hit;
 }
 
 int main(int argc, char **argv){
-    int i, RealAddress, answerPageTable, answerTLB;
-    unsigned int address;
-    int numberAddr = 0;
-    
-    if(argc < 2){
+	int i, offset, phisicalAddress, tlbmiss=0, tlbhit = 0;
+	unsigned int address;
+	int numberAddr = 0;
 
-        printf("Usage: ./%s <number of addresses>\n", argv[0]);
-        return 0;
-    
-    }
-    
-    numberAddr = atoi(argv[1]);
+	if(argc < 2){
+		printf("Usage: ./%s <number of addresses>\n", argv[0]);
+		return 0;
+	}
 
-    //srand(time()); /* Initialize the random numbers generator. */
-    memset(TLB, 0, sizeof(TLB)); /* Reset TLB */
-    page_table_init(PageTable); /* Initial random page table. */
-    int page, offset, TLBFault;    
-    
-    for(i=0;i<numberAddr;i++){ 
+	numberAddr = atoi(argv[1]);
+
+	/* Initialize the random numbers generator. */
+	srand(time(NULL));
+
+	/* Reset TLB */
+	tlb_init(TLB);
+	int RealAddress, frame;
+	/* Initial random page table. */
+	page_table_init(PageTable);
+
+	for(i=0;i<numberAddr;i++){
+
+		address = next_address();
+		page = address >> 8; // pega os 8 bits mais significativos do endereço.
+		offset = address & 0xFF; // Pega os 8 bits menos significativos do endereço.
+
+        if (TLBsearch(page) == 1)
+		{
+           phisicalAddress = (frame << 8) | offset;
+           tlbhit++;
+           
+		}
+		else
+		{
+        	tlbmiss++;
+            feedTlb(PageTable[frame],page);
+            phisicalAddress = (frame << 8) | offset;
+
+		}
+        printf("Virtual Address [%d] - Phisical Address [%d] - TLBHit [%d] -TLBMiss [%d]\n",address,phisicalAddress ,tlbhit,tlbmiss);
         
-        address = next_address();
+	}
 
-        page = address >> 8;
-        
-        offset = address & 0XFF;
-
-        answerTLB = searchTLB(page); 
-                
-        if(answerTLB == 0){ 
-            
-            RealAddress = frame << 8 || offset;
-        
-        } /* match TLB anwser */
-        else{ /* TLB no anwser */
-        
-        TLBFault++;
-        
-        }
-        searchPageTable(page);        
-        RealAddress = RealAddress = frame << 8 || offset;              
-        printf("Virtual Address [%d]\t - TLBFault %d\n",address ,TLBFault);
-        }
-
-    return 0;
-
+	return 0;
 }
